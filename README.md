@@ -14,7 +14,7 @@
   <a href="https://github.com/HAFEEZ-SHAIK-POLICHARLA/ORION-Z">
     <img src="https://img.shields.io/badge/Project-ORION--Z-0f766e?style=for-the-badge" alt="ORION-Z">
   </a>
-  <img src="https://img.shields.io/badge/SIHM-26145-059669?style=for-the-badge" alt="SIH26145">
+  <img src="https://img.shields.io/badge/SIH-26145-059669?style=for-the-badge" alt="SIH26145">
   <img src="https://img.shields.io/badge/Frontend-React%20%2B%20TypeScript-0ea5e9?style=for-the-badge" alt="React TypeScript">
   <img src="https://img.shields.io/badge/Backend-FastAPI-10b981?style=for-the-badge" alt="FastAPI">
   <img src="https://img.shields.io/badge/ML-Random%20Forest%20%2B%20Isolation%20Forest-0f172a?style=for-the-badge" alt="Machine Learning">
