@@ -12,10 +12,10 @@ from typing import Any
 
 from .detectors import DetectionConfig, WindowedDetector
 from .model import ThreatScorer, load_scorer
+from .paths import MODELS_DIR
 from .schemas import Alert, FlowEvent, Severity, ThreatClass
 
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_MODEL_DIR = PROJECT_ROOT / "models"
+DEFAULT_MODEL_DIR = MODELS_DIR
 
 
 class LiveTapManager:

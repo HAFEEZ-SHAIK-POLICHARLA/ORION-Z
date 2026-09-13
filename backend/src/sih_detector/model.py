@@ -13,9 +13,10 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from .features import WindowFeatures, extract_window_features
+from .paths import MODELS_DIR
 from .schemas import FlowEvent, ThreatClass
 
-DEFAULT_MODEL_DIR = Path(__file__).resolve().parents[3] / "models"
+DEFAULT_MODEL_DIR = MODELS_DIR
 
 FEATURE_NAMES = [
     "event_count",

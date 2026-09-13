@@ -1,0 +1,89 @@
+{
+  "version": "ml-v1",
+  "class_labels": [
+    "benign",
+    "ddos",
+    "port_scanning",
+    "dns_tunnelling",
+    "dga",
+    "botnet_beaconing",
+    "encrypted_session_anomaly",
+    "data_exfiltration",
+    "udp_amplification",
+    "slowloris"
+  ],
+  "feature_names": [
+    "event_count",
+    "packets_per_second",
+    "bytes_per_second",
+    "syn_ratio",
+    "incomplete_ratio",
+    "source_entropy",
+    "unique_sources",
+    "unique_destination_ports",
+    "unique_destination_hosts",
+    "dns_avg_entropy",
+    "dns_avg_query_length",
+    "dns_unique_query_ratio",
+    "periodicity_score",
+    "outbound_ratio",
+    "tls_metadata_score"
+  ],
+  "samples_per_class": 200,
+  "eval_samples_per_class": 200,
+  "seed": 42,
+  "eval_seed": 1042,
+  "eval_accuracy": 1.0,
+  "per_class_metrics": {
+    "benign": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "botnet_beaconing": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "data_exfiltration": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "ddos": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "dga": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "dns_tunnelling": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "encrypted_session_anomaly": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "port_scanning": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "slowloris": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "udp_amplification": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    }
+  }
+}

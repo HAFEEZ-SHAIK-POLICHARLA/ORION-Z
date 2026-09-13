@@ -19,13 +19,24 @@ from .detectors import DetectionConfig, WindowedDetector
 from .explain import check_ollama, generate_explanation
 from .live import LiveTapManager
 from .model import load_scorer
+from .paths import FIXTURES_DIR, MODELS_DIR
 from .replay import read_events, replay
 from .schemas import Alert
 
+DEFAULT_FIXTURE_DIR = FIXTURES_DIR
+DEFAULT_MODEL_DIR = MODELS_DIR
 
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_FIXTURE_DIR = PROJECT_ROOT / "data" / "fixtures"
-DEFAULT_MODEL_DIR = PROJECT_ROOT / "models"
+KNOWN_SCENARIOS = {
+    "syn_flood",
+    "port_scanning",
+    "dns_tunnelling",
+    "dga",
+    "beaconing",
+    "encrypted_session",
+    "exfiltration",
+    "udp_amplification",
+    "slowloris",
+}
 
 
 class ReplayRequest(BaseModel):
@@ -78,6 +89,8 @@ class ReplayManager:
             }
 
     def scenarios(self) -> list[str]:
+        if not self.fixture_dir.exists():
+            return []
         return sorted(path.stem for path in self.fixture_dir.glob("*.jsonl"))
 
     def is_running(self) -> bool:
@@ -86,9 +99,12 @@ class ReplayManager:
     def start(self, scenario: str, speed: float) -> None:
         if self.is_running():
             self.stop()
+        if scenario not in KNOWN_SCENARIOS and not (self.fixture_dir / f"{scenario}.jsonl").is_file():
+            raise ValueError(f"Invalid scenario identifier: {scenario}")
+
         path = self.fixture_dir / f"{scenario}.jsonl"
-        if not path.is_file() or path.parent != self.fixture_dir:
-            raise FileNotFoundError(f"Unknown scenario: {scenario}")
+        if not path.is_file():
+            raise FileNotFoundError(f"Replay fixture not found: {scenario}")
 
         self._stop.clear()
         self.alerts.clear()
@@ -242,8 +258,74 @@ app.add_middleware(
 
 
 @app.get("/api/health")
-def health() -> dict[str, str]:
-    return {"status": "ok", "mode": "read_only_replay"}
+def health() -> dict[str, Any]:
+    fixtures_ok = FIXTURES_DIR.exists()
+    models_ok = MODELS_DIR.exists()
+    return {
+        "status": "ok",
+        "mode": "read_only_replay",
+        "fixtures": {
+            "available": fixtures_ok,
+            "count": len(list(FIXTURES_DIR.glob("*.jsonl"))) if fixtures_ok else 0,
+        },
+        "models": {
+            "available": models_ok and (MODELS_DIR / "threat_classifier.joblib").is_file(),
+        },
+    }
+
+
+@app.get("/api/readiness")
+def readiness() -> dict[str, Any]:
+    issues: list[str] = []
+    fixtures_ok = FIXTURES_DIR.exists()
+    scenario_files = list(FIXTURES_DIR.glob("*.jsonl")) if fixtures_ok else []
+    fixture_count = len(scenario_files)
+
+    found_scenarios = {f.stem for f in scenario_files}
+    missing_scenarios = KNOWN_SCENARIOS - found_scenarios
+    if not fixtures_ok:
+        issues.append("fixtures directory missing")
+    elif missing_scenarios:
+        for s in sorted(missing_scenarios):
+            issues.append(f"missing fixture: {s}.jsonl")
+
+    models_ok = MODELS_DIR.exists()
+    classifier_ok = (MODELS_DIR / "threat_classifier.joblib").is_file() if models_ok else False
+    anomaly_ok = (MODELS_DIR / "anomaly_detector.joblib").is_file() if models_ok else False
+    meta_ok = (MODELS_DIR / "model_meta.json").is_file() if models_ok else False
+
+    if not models_ok:
+        issues.append("models directory missing")
+    else:
+        if not classifier_ok:
+            issues.append("missing model: threat_classifier.joblib")
+        if not anomaly_ok:
+            issues.append("missing model: anomaly_detector.joblib")
+        if not meta_ok:
+            issues.append("missing model: model_meta.json")
+
+    is_ready = len(issues) == 0
+    res: dict[str, Any] = {
+        "ready": is_ready,
+        "service": "backend",
+        "fixtures": {
+            "ready": fixtures_ok and len(missing_scenarios) == 0,
+            "count": fixture_count,
+        },
+        "models": {
+            "ready": classifier_ok and anomaly_ok and meta_ok,
+            "classifier": classifier_ok,
+            "anomaly_detector": anomaly_ok,
+            "metadata": meta_ok,
+        },
+    }
+    if issues:
+        res["issues"] = issues
+    return res
+
+
+def check_runtime_resources() -> dict[str, Any]:
+    return readiness()
 
 
 @app.get("/api/engine/health")
@@ -262,7 +344,12 @@ def engine_health() -> dict[str, Any]:
 
 @app.get("/api/scenarios")
 def scenarios() -> dict[str, list[str]]:
-    return {"scenarios": manager.scenarios()}
+    if not FIXTURES_DIR.exists():
+        raise HTTPException(status_code=500, detail="Fixtures directory missing")
+    scenarios_list = manager.scenarios()
+    if not scenarios_list:
+        raise HTTPException(status_code=500, detail="No scenario fixtures available")
+    return {"scenarios": scenarios_list}
 
 
 @app.get("/api/metrics")
@@ -348,8 +435,12 @@ def alerts(limit: int = 100) -> dict[str, list[dict[str, Any]]]:
 def start_replay(request: ReplayRequest) -> dict[str, str]:
     try:
         manager.start(request.scenario, request.speed)
-    except (RuntimeError, FileNotFoundError) as exc:
-        raise HTTPException(status_code=409 if isinstance(exc, RuntimeError) else 404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
     return {"status": "started", "scenario": request.scenario}
 
 

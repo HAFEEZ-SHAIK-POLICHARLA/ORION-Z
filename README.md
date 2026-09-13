@@ -435,18 +435,24 @@ The project includes application storage/vector infrastructure required by the c
 ```text
 ORION-Z/
 │
-├── backend/
-│   └── src/
-│       └── sih_detector/
-│           ├── api.py
-│           ├── detectors.py
-│           ├── live.py
-│           ├── model.py
-│           ├── replay.py
-│           ├── schemas.py
-│           └── ...
+├── backend/                  # Deployment unit for FastAPI backend
+│   ├── data/
+│   │   └── fixtures/        # Controlled replay inputs (9 threat scenarios)
+│   ├── models/              # Trained ML artifacts (joblib, meta)
+│   ├── src/
+│   │   └── sih_detector/    # Application code & detection engine
+│   │       ├── api.py
+│   │       ├── detectors.py
+│   │       ├── live.py
+│   │       ├── model.py
+│   │       ├── paths.py     # Centralized deployment path configuration
+│   │       ├── replay.py
+│   │       ├── schemas.py
+│   │       └── ...
+│   ├── tests/               # Deployment path & engine tests
+│   └── pyproject.toml
 │
-├── frontend/
+├── frontend/                 # Browser application (Vite + React)
 │   ├── public/
 │   ├── src/
 │   │   ├── components/
@@ -467,20 +473,19 @@ ORION-Z/
 │   │   ├── styles.css
 │   │   ├── types.ts
 │   │   └── ...
-│   ├── package.json
-│   └── ...
+│   └── package.json
 │
-├── data/
-│   └── fixtures/
-│
-├── models/
-│
-├── .agents/
-│
-├── skills-lock.json
-│
+├── vercel.json               # Root Vercel multi-service routing config
+├── LICENSE
 └── README.md
 ```
+
+### Component Path Ownership
+- **`frontend/`**: Browser application only.
+- **`backend/`**: Self-contained deployment unit for FastAPI.
+- **`backend/data/fixtures/`**: Controlled replay inputs for Threat Lab scenarios.
+- **`backend/models/`**: Trained machine learning artifacts for enrichment and anomaly scoring.
+- **`backend/src/sih_detector/`**: Detection logic, features, APIs, and centralized path configuration (`paths.py`).
 
 ---
 
