@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { Activity, Database, ShieldCheck, Sparkles, Radio } from "lucide-react";
 import type { Metrics, RealtimeMetrics } from "../types";
 import { OrionZHeaderMark } from "./OrionZHeaderMark";
@@ -23,7 +24,12 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="v2-header">
-      <div className="v2-brand-section">
+      <Link
+        to="/"
+        className="v2-brand-section"
+        style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}
+        aria-label="ORION-Z Home"
+      >
         <div className="v2-brand-logo-wrap">
           <OrionZHeaderMark size={36} />
         </div>
@@ -31,7 +37,7 @@ export const Header: React.FC<HeaderProps> = ({
           <span className="v2-brand-kicker">SIH26145 / NTRO / Z-Fighters</span>
           <h1 className="v2-brand-name">ORION-Z</h1>
         </div>
-      </div>
+      </Link>
 
       <div className="v2-header-badges">
         {/* Real-Time Passive Tap Indicator */}
