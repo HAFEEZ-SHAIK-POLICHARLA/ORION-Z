@@ -33,7 +33,3 @@ pythonpath = ["src"]
 
 [tool.ruff]
 line-length = 100
-
-
-[tool.vercel]
-entrypoint = "src/sih_detector/api:app"

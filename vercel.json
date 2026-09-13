@@ -6,7 +6,7 @@
         },
         "backend": {
             "root": "backend",
-            "entrypoint": "src/sih_detector/api:app"
+            "entrypoint": "src/sih_detector/app.py"
         }
     },
     "rewrites": [
