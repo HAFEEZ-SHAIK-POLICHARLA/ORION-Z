@@ -9,26 +9,27 @@
             "entrypoint": "src/sih_detector/api.py"
         }
     },
-    "routes": [
+    "rewrites": [
         {
-            "src": "/api(/.*)?",
-            "dest": "service:backend"
+            "source": "/api(/.*)?",
+            "destination": {
+                "type": "service",
+                "service": "backend"
+            }
         },
         {
-            "src": "/ws(/.*)?",
-            "dest": "service:backend"
+            "source": "/ws(/.*)?",
+            "destination": {
+                "type": "service",
+                "service": "backend"
+            }
         },
         {
-            "src": "/assets/(.*)",
-            "dest": "service:frontend"
-        },
-        {
-            "src": "/(.*\\.(?:png|jpg|jpeg|gif|svg|ico|js|css|json|woff|woff2|ttf|eot|map|txt|xml))",
-            "dest": "service:frontend"
-        },
-        {
-            "src": "/(.*)",
-            "dest": "service:frontend/index.html"
+            "source": "/(.*)",
+            "destination": {
+                "type": "service",
+                "service": "frontend"
+            }
         }
     ]
 }
