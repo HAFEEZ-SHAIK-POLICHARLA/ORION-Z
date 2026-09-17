@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { X, Sparkles } from "lucide-react";
 import {
@@ -271,9 +271,16 @@ export function App() {
     }
   };
 
+  // Single-flight guard: prevents rapid double-clicks from issuing duplicate POST /api/replay/start
+  // requests during the async window before the backend "running" status propagates back.
+  const replayStartInFlight = useRef(false);
+
   // Threat Lab Handlers
   const handleStartReplay = async () => {
     if (!selectedScenario) return;
+    // Guard: if a start is already in progress, ignore this invocation entirely.
+    if (replayStartInFlight.current) return;
+    replayStartInFlight.current = true;
     setActionError("");
     // Clear simulation data only — do not touch liveTimeline or live state
     setAlerts((current) => current.filter((a) => a.source_mode === "live"));
@@ -286,6 +293,8 @@ export function App() {
       if (latestMetrics) setMetrics(latestMetrics);
     } catch (error) {
       setActionError(error instanceof Error ? error.message : "Unable to start simulation replay");
+    } finally {
+      replayStartInFlight.current = false;
     }
   };
 
