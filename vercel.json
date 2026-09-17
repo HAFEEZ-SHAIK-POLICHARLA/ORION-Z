@@ -9,6 +9,7 @@
             "entrypoint": "src/sih_detector/api.py"
         }
     },
+    "cleanUrls": true,
     "rewrites": [
         {
             "source": "/api(/.*)?",
