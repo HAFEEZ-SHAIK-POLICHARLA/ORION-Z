@@ -9,38 +9,26 @@
             "entrypoint": "src/sih_detector/api.py"
         }
     },
-    "rewrites": [
+    "routes": [
         {
-            "source": "/api(/.*)?",
-            "destination": {
-                "type": "service",
-                "service": "backend"
-            }
+            "src": "/api(/.*)?",
+            "dest": "service:backend"
         },
         {
-            "source": "/ws(/.*)?",
-            "destination": {
-                "type": "service",
-                "service": "backend"
-            }
+            "src": "/ws(/.*)?",
+            "dest": "service:backend"
         },
         {
-            "source": "/assets/(.*)",
-            "destination": {
-                "type": "service",
-                "service": "frontend"
-            }
+            "src": "/assets/(.*)",
+            "dest": "service:frontend"
         },
         {
-            "source": "/(.*\\.(?:png|jpg|jpeg|gif|svg|ico|js|css|json|woff|woff2|ttf|eot|map|txt|xml))",
-            "destination": {
-                "type": "service",
-                "service": "frontend"
-            }
+            "src": "/(.*\\.(?:png|jpg|jpeg|gif|svg|ico|js|css|json|woff|woff2|ttf|eot|map|txt|xml))",
+            "dest": "service:frontend"
         },
         {
-            "source": "/(.*)",
-            "destination": "/index.html"
+            "src": "/(.*)",
+            "dest": "service:frontend/index.html"
         }
     ]
 }
