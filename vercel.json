@@ -2,34 +2,13 @@
     "services": {
         "frontend": {
             "root": "frontend",
-            "framework": "vite"
+            "framework": "vite",
+            "mountPath": "/"
         },
         "backend": {
             "root": "backend",
-            "entrypoint": "src/sih_detector/api.py"
+            "entrypoint": "src/sih_detector/api.py",
+            "mountPath": "/api"
         }
-    },
-    "rewrites": [
-        {
-            "source": "/api(/.*)?",
-            "destination": {
-                "type": "service",
-                "service": "backend"
-            }
-        },
-        {
-            "source": "/ws(/.*)?",
-            "destination": {
-                "type": "service",
-                "service": "backend"
-            }
-        },
-        {
-            "source": "/(.*)",
-            "destination": {
-                "type": "service",
-                "service": "frontend"
-            }
-        }
-    ]
+    }
 }
