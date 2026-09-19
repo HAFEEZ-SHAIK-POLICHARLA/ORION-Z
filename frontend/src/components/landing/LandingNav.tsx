@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, ShieldCheck } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { OrionZHeaderMark } from "../OrionZHeaderMark";
 
 export const LandingNav: React.FC = () => {
@@ -28,17 +28,21 @@ export const LandingNav: React.FC = () => {
           <a href="#architecture" className="oz-landing-nav-link">Architecture</a>
         </nav>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <span className="oz-landing-badge-tag">
-            <ShieldCheck size={13} />
-            <span>HIGH ASSURANCE</span>
-          </span>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <button
+            className="oz-landing-btn-secondary"
+            style={{ padding: "8px 14px", fontSize: "12px" }}
+            onClick={() => navigate("/realtime")}
+          >
+            <span>REAL-TIME</span>
+          </button>
           <button
             className="oz-landing-btn-primary"
+            style={{ padding: "8px 14px", fontSize: "12px" }}
             onClick={() => navigate("/threatlab")}
           >
-            <span>GET STARTED</span>
-            <ArrowRight size={15} />
+            <span>THREAT LAB</span>
+            <ArrowRight size={14} />
           </button>
         </div>
       </div>

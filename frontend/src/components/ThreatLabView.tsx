@@ -1,5 +1,5 @@
 import React from "react";
-import { Play, CircleStop, RefreshCw, FlaskConical, Gauge, Activity } from "lucide-react";
+import { Play, CircleStop, FlaskConical, Gauge, Activity } from "lucide-react";
 import type { Alert, FlowEvent, Metrics } from "../types";
 import { AttackReplayPanel } from "./AttackReplayPanel";
 import { AttackExplainer } from "./AttackExplainer";
@@ -8,14 +8,14 @@ interface ThreatLabViewProps {
   scenarios: string[];
   selectedScenario: string;
   onSelectScenario: (sc: string) => void;
-  speed: string;
-  onChangeSpeed: (sp: string) => void;
+  speed?: string;
+  onChangeSpeed?: (sp: string) => void;
   metrics: Metrics;
   flows: FlowEvent[];
   alerts: Alert[];
   onStart: () => void;
   onStop: () => void;
-  onRefresh: () => void;
+  onRefresh?: () => void;
 }
 
 const HUMAN_SCENARIOS: Record<string, string> = {
@@ -34,14 +34,11 @@ export const ThreatLabView: React.FC<ThreatLabViewProps> = ({
   scenarios,
   selectedScenario,
   onSelectScenario,
-  speed,
-  onChangeSpeed,
   metrics,
   flows,
   alerts,
   onStart,
   onStop,
-  onRefresh,
 }) => {
   const isRunning = metrics.status === "running";
   const latestAlert = alerts.length > 0 ? alerts[0] : null;
@@ -80,23 +77,6 @@ export const ThreatLabView: React.FC<ThreatLabViewProps> = ({
             </select>
           </div>
 
-          {/* Speed Selector */}
-          <div className="v2-select-group" style={{ width: "100px" }}>
-            <label htmlFor="speed-select" className="v2-select-label">Speed</label>
-            <select
-              id="speed-select"
-              className="v2-select"
-              value={speed}
-              onChange={(e) => onChangeSpeed(e.target.value)}
-            >
-              {["1", "4", "8", "12", "20"].map((s) => (
-                <option key={s} value={s}>
-                  {s}x
-                </option>
-              ))}
-            </select>
-          </div>
-
           {/* Start Replay */}
           <button
             className="v2-btn-emerald"
@@ -115,10 +95,6 @@ export const ThreatLabView: React.FC<ThreatLabViewProps> = ({
           >
             <CircleStop size={15} />
             <span>Stop</span>
-          </button>
-
-          <button className="v2-btn-secondary" onClick={onRefresh} title="Refresh">
-            <RefreshCw size={15} />
           </button>
         </div>
       </div>

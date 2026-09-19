@@ -120,14 +120,13 @@ class ReplayManager:
 
     def stop(self) -> None:
         self._stop.set()
-        if self._thread and self._thread is not threading.current_thread():
-            self._thread.join(timeout=1.0)
         with self._lock:
-            if self.metrics["status"] == "running":
-                self.metrics["status"] = "stopped"
-                self.metrics["running"] = False
-                self.metrics["finished_at"] = time.time()
+            self.metrics["status"] = "stopped"
+            self.metrics["running"] = False
+            self.metrics["finished_at"] = time.time()
         self._broadcast({"type": "metrics", "metrics": self.metrics})
+        if self._thread and self._thread is not threading.current_thread():
+            self._thread.join(timeout=0.5)
 
     def subscribe(self) -> tuple[asyncio.AbstractEventLoop, asyncio.Queue[dict[str, Any]]]:
         subscription = (asyncio.get_running_loop(), asyncio.Queue(maxsize=100))

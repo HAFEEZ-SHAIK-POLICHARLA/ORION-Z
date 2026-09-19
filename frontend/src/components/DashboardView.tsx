@@ -72,49 +72,49 @@ const STATE_META: Record<
     label: "BACKEND UNAVAILABLE",
     sub: "Cannot reach the ORION-Z detection backend. Ensure the FastAPI service is running.",
     icon: <WifiOff size={22} />,
-    color: "#92400e",
-    bg: "#fffbeb",
-    border: "#fde68a",
+    color: "var(--status-warning)",
+    bg: "rgba(245, 158, 11, 0.1)",
+    border: "rgba(245, 158, 11, 0.3)",
   },
   SENSOR_NOT_CONNECTED: {
     label: "LIVE SENSOR NOT CONNECTED",
     sub: "Start the detection engine on the Real-Time Detection page to begin live monitoring.",
     icon: <Radio size={22} />,
-    color: "#64748b",
-    bg: "#f8fafc",
-    border: "#cbd5e1",
+    color: "var(--text-secondary)",
+    bg: "var(--surface-1)",
+    border: "var(--border-subtle)",
   },
   ENGINE_STOPPED: {
     label: "DETECTION ENGINE STOPPED",
     sub: "The ORION-Z passive capture engine is not running. Navigate to Real-Time Detection to start it.",
     icon: <Cpu size={22} />,
-    color: "#64748b",
-    bg: "#f8fafc",
-    border: "#cbd5e1",
+    color: "var(--text-secondary)",
+    bg: "var(--surface-1)",
+    border: "var(--border-subtle)",
   },
   SENSOR_UNAVAILABLE: {
     label: "LIVE SENSOR UNAVAILABLE",
     sub: "Sensor prerequisites not met. Install Npcap and run the backend with Administrator privileges.",
     icon: <WifiOff size={22} />,
-    color: "#92400e",
-    bg: "#fffbeb",
-    border: "#fde68a",
+    color: "var(--status-warning)",
+    bg: "rgba(245, 158, 11, 0.1)",
+    border: "rgba(245, 158, 11, 0.3)",
   },
   LIVE_MONITORING_SAFE: {
     label: "LIVE MONITORING ACTIVE — NO ACTIVE THREATS",
     sub: "ORION-Z is actively monitoring the network. No qualifying threats detected in the current window.",
     icon: <Shield size={22} />,
-    color: "#065f46",
-    bg: "#ecfdf5",
-    border: "#a7f3d0",
+    color: "var(--accent-mint)",
+    bg: "rgba(42, 254, 183, 0.08)",
+    border: "var(--border-mint)",
   },
   LIVE_MONITORING_UNSAFE: {
     label: "LIVE MONITORING — ACTIVE THREATS DETECTED",
     sub: "ORION-Z has detected qualifying network threats. Review the live alert stream below.",
     icon: <ShieldAlert size={22} />,
-    color: "#991b1b",
-    bg: "#fef2f2",
-    border: "#fecaca",
+    color: "var(--status-critical)",
+    bg: "rgba(255, 59, 48, 0.12)",
+    border: "rgba(255, 59, 48, 0.35)",
   },
 };
 
@@ -312,28 +312,28 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <AreaChart data={liveTimeline}>
                   <defs>
                     <linearGradient id="liveAreaGlow" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#047857" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#047857" stopOpacity={0.0} />
+                      <stop offset="5%" stopColor="#00e5ff" stopOpacity={0.35} />
+                      <stop offset="95%" stopColor="#00e5ff" stopOpacity={0.0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid stroke="#e2e8f0" strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="time" stroke="#64748b" tickLine={false} axisLine={false} fontSize={11} />
-                  <YAxis allowDecimals={false} stroke="#64748b" tickLine={false} axisLine={false} fontSize={11} />
+                  <CartesianGrid stroke="rgba(255, 255, 255, 0.08)" strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="time" stroke="#667585" tickLine={false} axisLine={false} fontSize={11} />
+                  <YAxis allowDecimals={false} stroke="#667585" tickLine={false} axisLine={false} fontSize={11} />
                   <Tooltip
                     contentStyle={{
-                      background: "#ffffff",
-                      border: "1px solid #cbd5e1",
-                      borderRadius: "6px",
-                      color: "#0f172a",
+                      background: "#0b131e",
+                      border: "1px solid rgba(0, 229, 255, 0.3)",
+                      borderRadius: "8px",
+                      color: "#f4f7fa",
                       fontSize: "12px",
-                      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                      boxShadow: "0 8px 24px rgba(0,0,0,0.6)",
                     }}
                   />
                   <Area
                     type="monotone"
                     dataKey="alerts"
                     name="Live Alerts"
-                    stroke="#047857"
+                    stroke="#00e5ff"
                     strokeWidth={2.5}
                     fillOpacity={1}
                     fill="url(#liveAreaGlow)"

@@ -13,6 +13,7 @@ import { LandingAnomaly } from "./landing/LandingAnomaly";
 import { LandingMultiPanel } from "./landing/LandingMultiPanel";
 import { LandingArchitecture } from "./landing/LandingArchitecture";
 import { LandingFooter } from "./landing/LandingFooter";
+import { LandingScrollManager } from "./landing/LandingMotion";
 
 interface LandingViewProps {
   onGetStarted?: () => void;
@@ -20,49 +21,51 @@ interface LandingViewProps {
 
 export const LandingView: React.FC<LandingViewProps> = () => {
   return (
-    <div className="oz-landing-page">
-      {/* 01 — Persistent Header Navigation */}
-      <LandingNav />
+    <LandingScrollManager>
+      <div className="oz-landing-page">
+        {/* 01 — Persistent Header Navigation */}
+        <LandingNav />
 
-      {/* 02 — Atmospheric Hero Section */}
-      <LandingHero />
+        {/* 02 — Atmospheric Hero Section */}
+        <LandingHero />
 
-      {/* 03 — Hero Product Visual Composition */}
-      <LandingHeroVisual />
+        {/* 03 — Hero Product Visual Composition */}
+        <LandingHeroVisual />
 
-      {/* 04 — Product Capability Telemetry Pipeline */}
-      <LandingPipeline />
+        {/* 04 — Product Capability Telemetry Pipeline */}
+        <LandingPipeline />
 
-      {/* 05 — Hybrid Detection Architecture (Rule + RF + IF) */}
-      <LandingHybridEngine />
+        {/* 05 — Hybrid Detection Architecture (Rule + RF + IF) */}
+        <LandingHybridEngine />
 
-      {/* 06 — Central Intelligence Network Topology */}
-      <LandingCentralNode />
+        {/* 06 — Central Intelligence Network Topology */}
+        <LandingCentralNode />
 
-      {/* 07 — Threat Scenario Showcase (9 Attack Types) */}
-      <LandingThreatShowcase />
+        {/* 07 — Threat Scenario Showcase (9 Attack Types) */}
+        <LandingThreatShowcase />
 
-      {/* 08 — Explainability & Evidence Breakdown */}
-      <LandingExplainability />
+        {/* 08 — Explainability & Evidence Breakdown */}
+        <LandingExplainability />
 
-      {/* 09 — Real-Time Operations Distinction */}
-      <LandingRealTime />
+        {/* 09 — Real-Time Operations Distinction */}
+        <LandingRealTime />
 
-      {/* 10 — Threat Lab Sandbox Progression */}
-      <LandingThreatLab />
+        {/* 10 — Threat Lab Sandbox Progression */}
+        <LandingThreatLab />
 
-      {/* 11 — Behavioral Anomaly Scatter Cluster */}
-      <LandingAnomaly />
+        {/* 11 — Behavioral Anomaly Scatter Cluster */}
+        <LandingAnomaly />
 
-      {/* 12 — Multi-Panel Product Composition */}
-      <LandingMultiPanel />
+        {/* 12 — Multi-Panel Product Composition */}
+        <LandingMultiPanel />
 
-      {/* 13 — System Technical Architecture */}
-      <LandingArchitecture />
+        {/* 13 — System Technical Architecture */}
+        <LandingArchitecture />
 
-      {/* 14 — Final Editorial CTA & Footer */}
-      <LandingFooter />
-    </div>
+        {/* 14 — Final Editorial CTA & Footer */}
+        <LandingFooter />
+      </div>
+    </LandingScrollManager>
   );
 };
 

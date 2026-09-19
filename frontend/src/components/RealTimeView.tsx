@@ -582,10 +582,10 @@ export const RealTimeView: React.FC<RealTimeViewProps> = ({
               style={{
                 marginTop: "14px",
                 padding: "10px 14px",
-                background: "#f8fafc",
+                background: "var(--surface-2)",
                 borderRadius: "6px",
                 fontSize: "12px",
-                color: "#64748b",
+                color: "var(--text-secondary)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",

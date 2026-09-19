@@ -278,20 +278,26 @@ export function App() {
   // Threat Lab Handlers
   const handleStartReplay = async () => {
     if (!selectedScenario) return;
-    // Guard: if a start is already in progress, ignore this invocation entirely.
     if (replayStartInFlight.current) return;
     replayStartInFlight.current = true;
     setActionError("");
-    // Clear simulation data only — do not touch liveTimeline or live state
+    // Optimistically transition status immediately so UI updates on first click
+    setMetrics((prev) => ({
+      ...prev,
+      status: "running",
+      running: true,
+      scenario: selectedScenario,
+    }));
     setAlerts((current) => current.filter((a) => a.source_mode === "live"));
     setFlows([]);
     setTimeline([]);
     setSelectedAlert(null);
     try {
-      await startReplay(selectedScenario, Number(speed));
+      await startReplay(selectedScenario, 1.0);
       const latestMetrics = await getMetrics().catch(() => null);
       if (latestMetrics) setMetrics(latestMetrics);
     } catch (error) {
+      setMetrics((prev) => ({ ...prev, status: "error", running: false }));
       setActionError(error instanceof Error ? error.message : "Unable to start simulation replay");
     } finally {
       replayStartInFlight.current = false;
@@ -299,6 +305,8 @@ export function App() {
   };
 
   const handleStopReplay = async () => {
+    // Optimistically transition status to stopped immediately
+    setMetrics((prev) => ({ ...prev, status: "stopped", running: false }));
     try {
       await stopReplay();
       const latestMetrics = await getMetrics().catch(() => null);

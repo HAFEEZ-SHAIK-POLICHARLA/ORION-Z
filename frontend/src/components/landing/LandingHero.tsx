@@ -31,19 +31,19 @@ export const LandingHero: React.FC = () => {
           <button
             className="oz-landing-btn-primary"
             style={{ padding: "14px 28px", fontSize: "15px" }}
-            onClick={() => navigate("/threatlab")}
+            onClick={() => navigate("/realtime")}
           >
-            <span>GET STARTED</span>
-            <ArrowRight size={18} />
+            <Activity size={18} />
+            <span>REAL-TIME DETECTION</span>
           </button>
-          <a
-            href="#detection"
+          <button
             className="oz-landing-btn-secondary"
             style={{ padding: "14px 28px", fontSize: "15px" }}
+            onClick={() => navigate("/threatlab")}
           >
-            <Activity size={16} />
-            <span>EXPLORE DETECTION</span>
-          </a>
+            <span>THREAT LAB SIMULATION</span>
+            <ArrowRight size={18} />
+          </button>
         </div>
       </div>
     </section>
