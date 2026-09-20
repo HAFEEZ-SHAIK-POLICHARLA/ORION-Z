@@ -594,6 +594,9 @@ export function AttackExplainer({
   // depending on currentStep (which would re-run the effect on every step transition).
   const prevIsRunningRef = useRef(false);
 
+  const activeReplayId = metrics.replay_id || null;
+  const lastHandledReplayIdRef = useRef<string | null>(null);
+
   const clearTimers = () => {
     timerRef.current.forEach((id) => clearTimeout(id));
     timerRef.current = [];
@@ -615,6 +618,7 @@ export function AttackExplainer({
       prevScenarioRef.current = scenario;
       clearTimers();
       replaySessionRef.current += 1; // invalidate any in-flight timers
+      lastHandledReplayIdRef.current = null;
       setResolvedThreat(null);
       setCurrentStep("ready");
     }
@@ -630,16 +634,21 @@ export function AttackExplainer({
 
   // 3. CINEMATIC TIMELINE RUNNER: Starts wall-clock sequence on the false→true edge of isRunning.
   // CRITICAL: currentStep is NOT in the dependency array. This effect must only run when isRunning
-  // itself changes (or scenario/realtimeTargetThreat changes). Having currentStep here would
-  // re-run the effect on every step transition and risk spawning duplicate timer chains.
+  // itself changes (or scenario/realtimeTargetThreat changes).
   useEffect(() => {
     const wasRunning = prevIsRunningRef.current;
     prevIsRunningRef.current = isRunning;
 
     // Only launch a new cinematic sequence on a genuine false→true transition.
-    // If the user restarts after reaching "complete", the status goes
-    // idle/stopped/completed → running, so wasRunning will be false at that point.
     if (!isRunning || wasRunning) return;
+
+    // Avoid restarting an already handled/completed replay session
+    if (activeReplayId && activeReplayId === lastHandledReplayIdRef.current && (status === "completed" || status === "stopped")) {
+      return;
+    }
+    if (activeReplayId) {
+      lastHandledReplayIdRef.current = activeReplayId;
+    }
 
     // New replay: cancel all previous timers and mint a new session.
     clearTimers();
@@ -651,10 +660,10 @@ export function AttackExplainer({
       const picked = realtimeTargetThreat || getNextRealtimeThreat();
       setResolvedThreat(picked);
 
-      addTimer("scan_2", 1000, session);
-      addTimer("scan_3", 2000, session);
-      addTimer("scan_4", 3000, session);
-      addTimer("scan_5", 4000, session);
+      addTimer("scan_2", 800, session);
+      addTimer("scan_3", 1600, session);
+      addTimer("scan_4", 2400, session);
+      addTimer("scan_5", 3200, session);
 
       const t1 = window.setTimeout(() => {
         if (replaySessionRef.current !== session) return;
@@ -662,14 +671,14 @@ export function AttackExplainer({
         const t2 = window.setTimeout(() => {
           if (replaySessionRef.current !== session) return;
           setCurrentStep("attack");
-          addTimer("observe", 2000, session);
-          addTimer("extract", 4000, session);
-          addTimer("evaluate", 6000, session);
-          addTimer("enrich", 8000, session);
-          addTimer("decision", 10000, session);
-        }, 300);
+          addTimer("observe", 1000, session);
+          addTimer("extract", 2000, session);
+          addTimer("evaluate", 3000, session);
+          addTimer("enrich", 4000, session);
+          addTimer("decision", 4500, session);
+        }, 200);
         timerRef.current.push(t2);
-      }, 5000);
+      }, 4000);
       timerRef.current.push(t1);
     } else if (scenario === "anomaly_detection") {
       setCurrentStep("anomaly_scan_1");
@@ -679,25 +688,22 @@ export function AttackExplainer({
       addTimer("anomaly_scan_5", 4000, session);
     } else {
       setCurrentStep("attack");
-      addTimer("observe", 2000, session);
-      addTimer("extract", 4000, session);
-      addTimer("evaluate", 6000, session);
-      addTimer("enrich", 8000, session);
-      addTimer("decision", 10000, session);
+      addTimer("observe", 1000, session);
+      addTimer("extract", 2000, session);
+      addTimer("evaluate", 3000, session);
+      addTimer("enrich", 4000, session);
+      addTimer("decision", 4500, session);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isRunning, scenario, realtimeTargetThreat]);
+  }, [isRunning, scenario, realtimeTargetThreat, activeReplayId]);
 
   // 4. GATED COMPLETION EFFECT:
-  // Transition to "complete" ONLY when visual timeline reached decision phase AND backend status is "completed".
-  // latestAlert is intentionally excluded from deps: it is only used in render output, not for
-  // state transitions here. Including it would cause this effect to re-run on every alert during
-  // replay, which is wasteful and can cause spurious completion checks.
+  // Transition to "complete" synchronously when backend status is "completed".
   useEffect(() => {
-    const isVisualPhaseFinal = ["decision", "anomaly_scan_5", "scan_5", "complete"].includes(currentStep);
     const isBackendComplete = status === "completed";
 
-    if (isVisualPhaseFinal && isBackendComplete && !isStopped) {
+    if (isBackendComplete && !isStopped) {
+      clearTimers();
       if (scenario === "anomaly_detection") {
         if (currentStep !== "anomaly_complete") {
           setCurrentStep("anomaly_complete");

@@ -126,12 +126,15 @@ export function AttackReplayPanel({
   metrics,
 }: AttackReplayPanelProps) {
   const isRunning = status === "running";
+  const isBackendComplete = status === "completed";
   const hasFlows = flows.length > 0;
   const latestFlow = flows[0] || null;
 
   // Determine the overall pipeline state label
   const pipelineState: "waiting" | "observing" | "analyzing" | "detected" = latestAlert
     ? "detected"
+    : isBackendComplete
+    ? (hasFlows ? "analyzing" : "waiting")
     : hasFlows
     ? "analyzing"
     : isRunning
@@ -794,7 +797,7 @@ export function AttackReplayPanel({
             <span style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.12em" }}>
               {pipelineState === "waiting" && "AWAITING TRAFFIC — START REPLAY TO BEGIN"}
               {pipelineState === "observing" && "OBSERVING — ACCUMULATING FLOW WINDOW..."}
-              {pipelineState === "analyzing" && "ANALYZING — EVALUATING RULES AGAINST FEATURES..."}
+              {pipelineState === "analyzing" && (isBackendComplete ? "ANALYSIS COMPLETED — TELEMETRY PROCESSED" : "ANALYZING — EVALUATING RULES AGAINST FEATURES...")}
               {pipelineState === "detected" && `RULE FIRED → ${latestAlert?.detector.toUpperCase()} TRIGGERED`}
             </span>
           </div>

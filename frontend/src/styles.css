@@ -3552,9 +3552,9 @@ pre,
   align-items: center;
   gap: 6px;
   padding: 9px 18px;
-  background: linear-gradient(135deg, #00e5ff 0%, #00b8d9 100%);
-  color: #060b11;
-  border: none;
+  background: linear-gradient(135deg, #0f172a 0%, #059669 50%, #0891b2 100%);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 6px;
   font-weight: 700;
   font-size: 13px;
@@ -3564,7 +3564,8 @@ pre,
 
 .v2-btn-emerald:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(0, 229, 255, 0.3);
+  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.35);
+  filter: brightness(1.1);
 }
 
 .v2-btn-emerald:disabled {

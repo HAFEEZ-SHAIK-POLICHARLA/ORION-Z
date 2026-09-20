@@ -44,6 +44,8 @@ class ReplayRequest(BaseModel):
     speed: float = Field(default=1.0, gt=0)
 
 
+import uuid
+
 class ReplayManager:
     def __init__(
         self,
@@ -67,6 +69,7 @@ class ReplayManager:
             "model": os.getenv("OLLAMA_MODEL", "qwen2.5:3b-instruct"),
             "available": False,
         }
+        self.replay_id: str | None = None
         self.reset_metrics()
 
     def reset_metrics(self) -> None:
@@ -83,6 +86,7 @@ class ReplayManager:
                 "finished_at": None,
                 "threat_counts": {},
                 "error_count": 0,
+                "replay_id": self.replay_id,
                 "model_status": self.model_status,
                 "appwrite_status": self.appwrite_sink.status(),
                 "ollama_status": self.ollama_status,
@@ -108,8 +112,16 @@ class ReplayManager:
 
         self._stop.clear()
         self.alerts.clear()
+        new_replay_id = f"rep_{int(time.time() * 1000)}_{uuid.uuid4().hex[:8]}"
+        self.replay_id = new_replay_id
         self.reset_metrics()
-        self.metrics.update({"scenario": scenario, "status": "running", "running": True, "started_at": time.time()})
+        self.metrics.update({
+            "scenario": scenario,
+            "status": "running",
+            "running": True,
+            "started_at": time.time(),
+            "replay_id": new_replay_id,
+        })
         self._thread = threading.Thread(
             target=self._run,
             args=(path, speed),
@@ -139,20 +151,11 @@ class ReplayManager:
     def _run(self, path: Path, speed: float) -> None:
         detector = WindowedDetector(DetectionConfig(), scorer=self.scorer)
         started = time.perf_counter()
-        last_event_time = None
         threat_counts: Counter[str] = Counter()
 
         def handle_event(event: Any) -> list[Alert]:
-            nonlocal last_event_time
             if self._stop.is_set():
                 return []
-            if last_event_time is not None:
-                source_gap = max(0.0, (event.timestamp - last_event_time).total_seconds())
-                if source_gap > 0:
-                    stopped = self._stop.wait(source_gap / speed)
-                    if stopped or self._stop.is_set():
-                        return []
-            last_event_time = event.timestamp
             processing_started = time.perf_counter()
             alerts = detector.process(event)
             processing_latency_ms = (time.perf_counter() - processing_started) * 1000
@@ -183,7 +186,23 @@ class ReplayManager:
             self._enqueue_explanation(alert)
 
         try:
-            replay(read_events(path), handle_event, handle_alert, stop_event=self._stop)
+            event_list = list(read_events(path))
+            total_events = len(event_list)
+            target_duration = 5.0 / max(0.1, speed)
+            delay_per_event = (target_duration / max(1, total_events)) if total_events > 0 else 0.0
+
+            for i, event in enumerate(event_list):
+                if self._stop.is_set():
+                    break
+                alerts = handle_event(event)
+                for alert in alerts:
+                    handle_alert(alert)
+
+                if delay_per_event > 0 and i < total_events - 1:
+                    stopped = self._stop.wait(delay_per_event)
+                    if stopped or self._stop.is_set():
+                        break
+
             status = "stopped" if self._stop.is_set() else "completed"
         except Exception as exc:
             with self._lock:
@@ -204,6 +223,8 @@ class ReplayManager:
             loop.call_soon_threadsafe(explanation_queue.put_nowait, alert)
 
     def _broadcast(self, message: dict[str, Any]) -> None:
+        if self.replay_id and "replay_id" not in message:
+            message["replay_id"] = self.replay_id
         for loop, queue in list(self._subscribers):
             loop.call_soon_threadsafe(self._put_message, queue, message)
 

@@ -101,6 +101,11 @@ export function App() {
   const [liveTimeline, setLiveTimeline] = useState<{ time: string; alerts: number }[]>([]);
 
 
+  // Single-flight guard: prevents rapid double-clicks from issuing duplicate POST /api/replay/start
+  // requests during the async window before the backend "running" status propagates back.
+  const replayStartInFlight = useRef(false);
+  const activeReplayIdRef = useRef<string | null>(null);
+
   const prependAlert = useCallback((alert: Alert) => {
     setAlerts((current) => [alert, ...current.filter((item) => item.alert_id !== alert.alert_id)].slice(0, 100));
     // All alerts feed the simulation timeline (Lab Results domain)
@@ -124,6 +129,9 @@ export function App() {
         setSelectedScenario((current) => (current && scenarioData.includes(current) ? current : scenarioData[0]));
       }
       setMetrics(metricData);
+      if (metricData.replay_id) {
+        activeReplayIdRef.current = metricData.replay_id;
+      }
       setRealtimeMetrics(liveData);
       setAlerts(alertData);
       setTimeline(alertData.slice(0, 14).reverse().map((alert) => ({ time: formatTime(alert.timestamp), alerts: 1 })));
@@ -173,9 +181,20 @@ export function App() {
         if (!isMounted) return;
         try {
           const payload = JSON.parse(message.data) as SocketMessage;
+          // Filter simulation messages by active replay_id
+          if ("replay_id" in payload && payload.replay_id) {
+            if (activeReplayIdRef.current && payload.replay_id !== activeReplayIdRef.current) {
+              return; // Ignore stale messages from old or stopped replay instances
+            }
+          }
           if (payload.type === "flow") {
-            setFlows((current) => [payload.flow, ...current].slice(0, 100));
+            if (activeReplayIdRef.current) {
+              setFlows((current) => [payload.flow, ...current].slice(0, 100));
+            }
           } else if (payload.type === "metrics") {
+            if (payload.metrics.replay_id && payload.metrics.running) {
+              activeReplayIdRef.current = payload.metrics.replay_id;
+            }
             setMetrics(payload.metrics);
           } else if (payload.type === "live_status") {
             setRealtimeMetrics(payload.metrics);
@@ -199,7 +218,17 @@ export function App() {
     // Background polling fallback every 2 seconds
     const pollInterval = setInterval(() => {
       if (isMounted) {
-        void getMetrics().then((m) => isMounted && setMetrics(m)).catch(() => { });
+        void getMetrics()
+          .then((m) => {
+            if (!isMounted) return;
+            // If the user stopped the active replay, do not overwrite status to completed or running
+            if (!activeReplayIdRef.current && (m.status === "stopped" || m.status === "idle")) {
+              setMetrics((prev) => ({ ...prev, status: prev.status === "stopped" ? "stopped" : m.status, running: false }));
+              return;
+            }
+            setMetrics(m);
+          })
+          .catch(() => {});
         void getRealtimeStatus().then((r) => isMounted && setRealtimeMetrics(r)).catch(() => { });
       }
     }, 2000);
@@ -271,15 +300,13 @@ export function App() {
     }
   };
 
-  // Single-flight guard: prevents rapid double-clicks from issuing duplicate POST /api/replay/start
-  // requests during the async window before the backend "running" status propagates back.
-  const replayStartInFlight = useRef(false);
-
   // Threat Lab Handlers
   const handleStartReplay = async () => {
     if (!selectedScenario) return;
     if (replayStartInFlight.current) return;
     replayStartInFlight.current = true;
+    const clientReplayId = `rep_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+    activeReplayIdRef.current = clientReplayId;
     setActionError("");
     // Optimistically transition status immediately so UI updates on first click
     setMetrics((prev) => ({
@@ -287,6 +314,7 @@ export function App() {
       status: "running",
       running: true,
       scenario: selectedScenario,
+      replay_id: clientReplayId,
     }));
     setAlerts((current) => current.filter((a) => a.source_mode === "live"));
     setFlows([]);
@@ -295,22 +323,29 @@ export function App() {
     try {
       await startReplay(selectedScenario, 1.0);
       const latestMetrics = await getMetrics().catch(() => null);
-      if (latestMetrics) setMetrics(latestMetrics);
+      if (latestMetrics && activeReplayIdRef.current === clientReplayId) {
+        setMetrics(latestMetrics);
+      }
     } catch (error) {
-      setMetrics((prev) => ({ ...prev, status: "error", running: false }));
-      setActionError(error instanceof Error ? error.message : "Unable to start simulation replay");
+      if (activeReplayIdRef.current === clientReplayId) {
+        setMetrics((prev) => ({ ...prev, status: "error", running: false }));
+        setActionError(error instanceof Error ? error.message : "Unable to start simulation replay");
+      }
     } finally {
       replayStartInFlight.current = false;
     }
   };
 
   const handleStopReplay = async () => {
+    activeReplayIdRef.current = null;
     // Optimistically transition status to stopped immediately
-    setMetrics((prev) => ({ ...prev, status: "stopped", running: false }));
+    setMetrics((prev) => ({ ...prev, status: "stopped", running: false, replay_id: null }));
     try {
       await stopReplay();
       const latestMetrics = await getMetrics().catch(() => null);
-      if (latestMetrics) setMetrics(latestMetrics);
+      if (latestMetrics && activeReplayIdRef.current === null) {
+        setMetrics({ ...latestMetrics, status: "stopped", running: false, replay_id: null });
+      }
     } catch (error) {
       setActionError(error instanceof Error ? error.message : "Unable to stop simulation replay");
     }

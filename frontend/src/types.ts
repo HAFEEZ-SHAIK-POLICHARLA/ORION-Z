@@ -48,6 +48,7 @@ export interface Metrics {
   threat_counts: Record<string, number>;
   error_count: number;
   last_error?: string;
+  replay_id?: string | null;
   model_status?: { available: boolean; version: string };
   appwrite_status?: { enabled: boolean; persisted_count: number; last_error?: string | null };
   ollama_status?: { enabled: boolean; model: string; available: boolean };
@@ -116,9 +117,9 @@ export interface ReadinessChecks {
 }
 
 export type SocketMessage =
-  | { type: "flow"; flow: FlowEvent }
-  | { type: "alert"; alert: Alert }
-  | { type: "metrics"; metrics: Metrics }
+  | { type: "flow"; flow: FlowEvent; replay_id?: string }
+  | { type: "alert"; alert: Alert; replay_id?: string }
+  | { type: "metrics"; metrics: Metrics; replay_id?: string }
   | { type: "live_status"; metrics: RealtimeMetrics }
   | { type: "explained"; alert_id: string; explanation: string; source: string };
 
